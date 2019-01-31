@@ -136,7 +136,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 
 	HRESULT hr = E_FAIL;
 
-	DXGI_SWAP_CHAIN_DESC scd;
 	D3D11_BUFFER_DESC bd;
 	D3D11_SAMPLER_DESC sd;
 	D3D11_DEPTH_STENCIL_DESC dsd;
@@ -148,6 +147,8 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 
 	std::string adapter_id = theApp.GetConfigS("Adapter");
 
+	CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_factory);
+
 	if (adapter_id == "default")
 		;
 	else if (adapter_id == "ref")
@@ -156,13 +157,11 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	}
 	else
 	{
-		CComPtr<IDXGIFactory1> dxgi_factory;
-		CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&dxgi_factory);
-		if (dxgi_factory)
+		if (m_factory)
 			for (int i = 0;; i++)
 			{
 				CComPtr<IDXGIAdapter1> enum_adapter;
-				if (S_OK != dxgi_factory->EnumAdapters1(i, &enum_adapter))
+				if (S_OK != m_factory->EnumAdapters1(i, &enum_adapter))
 					break;
 				DXGI_ADAPTER_DESC1 desc;
 				hr = enum_adapter->GetDesc1(&desc);
@@ -174,25 +173,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 				}
 			}
 	}
-
-	memset(&scd, 0, sizeof(scd));
-
-	scd.BufferCount = 2;
-	scd.BufferDesc.Width = 1;
-	scd.BufferDesc.Height = 1;
-	scd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-	//scd.BufferDesc.RefreshRate.Numerator = 60;
-	//scd.BufferDesc.RefreshRate.Denominator = 1;
-	scd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	scd.OutputWindow = (HWND)m_wnd->GetHandle();
-	scd.SampleDesc.Count = 1;
-	scd.SampleDesc.Quality = 0;
-
-	// Always start in Windowed mode.  According to MS, DXGI just "prefers" this, and it's more or less
-	// required if we want to add support for dual displays later on.  The fullscreen/exclusive flip
-	// will be issued after all other initializations are complete.
-
-	scd.Windowed = TRUE;
 
 	// NOTE : D3D11_CREATE_DEVICE_SINGLETHREADED
 	//   This flag is safe as long as the DXGI's internal message pump is disabled or is on the
@@ -214,11 +194,16 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		D3D_FEATURE_LEVEL_10_0,
 	};
 
-	hr = D3D11CreateDeviceAndSwapChain(adapter, driver_type, NULL, flags, levels, countof(levels), D3D11_SDK_VERSION, &scd, &m_swapchain, &m_dev, &level, &m_ctx);
+	hr = D3D11CreateDevice(adapter, driver_type, NULL, flags, levels, countof(levels), D3D11_SDK_VERSION, &m_dev, &level, &m_ctx);
 
 	if(FAILED(hr)) return false;
 
 	if(!SetFeatureLevel(level, true))
+	{
+		return false;
+	}
+
+	if (!CreateSwapChain())
 	{
 		return false;
 	}
@@ -478,6 +463,34 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	);
 
 	return true;
+}
+
+bool GSDevice11::CreateSwapChain()
+{
+	DXGI_SWAP_CHAIN_DESC desc = {};
+
+	desc.BufferCount = 2;
+	desc.BufferDesc.Width = 1;
+	desc.BufferDesc.Height = 1;
+	desc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	desc.OutputWindow = static_cast<HWND>(m_wnd->GetHandle());
+	desc.SampleDesc.Count = 1;
+	desc.SampleDesc.Quality = 0;
+	desc.Windowed = TRUE;
+	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+
+	HRESULT hr = NULL;
+	hr = m_factory->CreateSwapChain(m_dev, &desc, &m_swapchain);
+
+	if (FAILED(hr))
+	{
+		// Windows 7 systems without platform update don't support flip sequential
+		desc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
+		hr = m_factory->CreateSwapChain(m_dev, &desc, &m_swapchain);
+	}
+
+	return SUCCEEDED(hr);
 }
 
 bool GSDevice11::Reset(int w, int h)
