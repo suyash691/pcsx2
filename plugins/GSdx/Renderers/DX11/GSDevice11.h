@@ -473,8 +473,6 @@ public:
 	void Flip();
 	void SetVSync(int vsync) final;
 
-	void SetExclusive(bool isExcl);
-
 	void DrawPrimitive() final;
 	void DrawIndexedPrimitive();
 	void DrawIndexedPrimitive(int offset, int count) final;
