@@ -46,6 +46,8 @@ GSDevice11::GSDevice11()
 
 	m_mipmap = theApp.GetConfigI("mipmap");
 	m_upscale_multiplier = theApp.GetConfigI("upscale_multiplier");
+
+	m_tearing_support = false;
 }
 
 bool GSDevice11::LoadD3DCompiler()
@@ -483,9 +485,25 @@ HRESULT GSDevice11::CreateSwapChain()
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Scaling = DXGI_SCALING_STRETCH;
-	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD; // Windows 10
 
-	HRESULT hr = NULL;
+	HRESULT hr = E_FAIL;
+
+	CComPtr<IDXGIFactory5> factory5;
+	UINT tearing = 0;
+
+	if (SUCCEEDED(m_factory->QueryInterface<IDXGIFactory5>(&factory5)))
+	{
+		factory5->CheckFeatureSupport(
+			DXGI_FEATURE_PRESENT_ALLOW_TEARING,
+			&tearing, sizeof(tearing)
+		);
+	}
+
+	// Windows 10
+	desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	desc.Flags = tearing ? DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING : 0;
+
+	m_tearing_support = tearing;
 
 	hr = m_factory->CreateSwapChainForHwnd(
 		m_dev, static_cast<HWND>(m_wnd->GetHandle()), &desc,
@@ -522,8 +540,14 @@ bool GSDevice11::Reset(int w, int h)
 
 	if(m_swapchain)
 	{
+		DXGI_SWAP_CHAIN_DESC1 desc = {};
+		UINT flags = 0;
+
+		if (m_tearing_support)
+			flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+
 		m_swapchain->ResizeBuffers(
-			0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0
+			0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, flags
 		);
 
 		CComPtr<ID3D11Texture2D> backbuffer;
@@ -546,7 +570,12 @@ void GSDevice11::SetVSync(int vsync)
 
 void GSDevice11::Flip()
 {
-	m_swapchain->Present(m_vsync, 0);
+	UINT flags = 0;
+
+	if (m_tearing_support)
+		flags |= DXGI_PRESENT_ALLOW_TEARING;
+
+	m_swapchain->Present(m_vsync, flags);
 }
 
 void GSDevice11::BeforeDraw()

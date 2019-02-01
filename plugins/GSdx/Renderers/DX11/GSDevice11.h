@@ -319,6 +319,7 @@ private:
 	float m_hack_topleft_offset;
 	int m_upscale_multiplier;
 	int m_mipmap;
+	bool m_tearing_support;
 
 	GSTexture* CreateSurface(int type, int w, int h, int format);
 	GSTexture* FetchSurface(int type, int w, int h, int format);
@@ -334,7 +335,7 @@ private:
 	void BeforeDraw();
 	void AfterDraw();
 	HRESULT CreateSwapChain();
-	
+
 	//
 
 	CComPtr<IDXGIFactory2> m_factory;
