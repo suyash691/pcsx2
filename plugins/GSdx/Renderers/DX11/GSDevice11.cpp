@@ -522,12 +522,9 @@ bool GSDevice11::Reset(int w, int h)
 
 	if(m_swapchain)
 	{
-		DXGI_SWAP_CHAIN_DESC scd;
-
-		memset(&scd, 0, sizeof(scd));
-
-		m_swapchain->GetDesc(&scd);
-		m_swapchain->ResizeBuffers(scd.BufferCount, w, h, scd.BufferDesc.Format, 0);
+		m_swapchain->ResizeBuffers(
+			0, 0, 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0
+		);
 
 		CComPtr<ID3D11Texture2D> backbuffer;
 
