@@ -333,12 +333,14 @@ private:
 	void RenderOsd(GSTexture* dt);
 	void BeforeDraw();
 	void AfterDraw();
+	HRESULT CreateSwapChain();
 	
 	//
 
+	CComPtr<IDXGIFactory2> m_factory;
 	CComPtr<ID3D11Device> m_dev;
 	CComPtr<ID3D11DeviceContext> m_ctx;
-	CComPtr<IDXGISwapChain> m_swapchain;
+	CComPtr<IDXGISwapChain1> m_swapchain;
 	CComPtr<ID3D11Buffer> m_vb;
 	CComPtr<ID3D11Buffer> m_vb_old;
 	CComPtr<ID3D11Buffer> m_ib;
