@@ -94,7 +94,7 @@ void GSDevice11::FreeD3DCompiler()
 	s_d3d_compiler_dll = nullptr;
 }
 
-bool GSDevice11::SetFeatureLevel(D3D_FEATURE_LEVEL level, bool compat_mode)
+bool GSDevice11::SetFeatureLevel(D3D_FEATURE_LEVEL level)
 {
 	m_shader.level = level;
 
@@ -141,13 +141,8 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	D3D11_DEPTH_STENCIL_DESC dsd;
 	D3D11_RASTERIZER_DESC rd;
 	D3D11_BLEND_DESC bsd;
-
-	CComPtr<IDXGIAdapter1> adapter;
-	D3D_DRIVER_TYPE driver_type = D3D_DRIVER_TYPE_HARDWARE;
-
-	std::string adapter_id = theApp.GetConfigS("Adapter");
-
 	HRESULT hr = E_FAIL;
+
 	hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_factory);
 
 	if (FAILED(hr))
@@ -156,66 +151,10 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	if (adapter_id == "default")
-		;
-	else if (adapter_id == "ref")
-	{
-		driver_type = D3D_DRIVER_TYPE_REFERENCE;
-	}
-	else
-	{
-		if (m_factory)
-			for (int i = 0;; i++)
-			{
-				CComPtr<IDXGIAdapter1> enum_adapter;
-				if (S_OK != m_factory->EnumAdapters1(i, &enum_adapter))
-					break;
-				DXGI_ADAPTER_DESC1 desc;
-				hr = enum_adapter->GetDesc1(&desc);
-				if (S_OK == hr && GSAdapter(desc) == adapter_id)
-				{
-					adapter = enum_adapter;
-					driver_type = D3D_DRIVER_TYPE_UNKNOWN;
-					break;
-				}
-			}
-	}
-
-	// NOTE : D3D11_CREATE_DEVICE_SINGLETHREADED
-	//   This flag is safe as long as the DXGI's internal message pump is disabled or is on the
-	//   same thread as the GS window (which the emulator makes sure of, if it utilizes a
-	//   multithreaded GS).  Setting the flag is a nice and easy 5% speedup on GS-intensive scenes.
-
-	uint32 flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
-
-#ifdef DEBUG
-	flags |= D3D11_CREATE_DEVICE_DEBUG;
-#endif
-
-	D3D_FEATURE_LEVEL level;
-
-	const D3D_FEATURE_LEVEL levels[] =
-	{
-		D3D_FEATURE_LEVEL_11_0,
-		D3D_FEATURE_LEVEL_10_1,
-		D3D_FEATURE_LEVEL_10_0,
-	};
-
-	hr = D3D11CreateDevice(
-		adapter, driver_type, NULL, flags,
-		levels, countof(levels), D3D11_SDK_VERSION,
-		&m_dev, &level, &m_ctx
-	);
-
+	hr = CreateD3DDevice();
 	if (FAILED(hr))
 	{
 		fprintf(stderr, "ERROR: Failed to create d3d device\n");
-		return false;
-	}
-
-	if(!SetFeatureLevel(level, true))
-	{
-		fprintf(stderr, "ERROR: Failed to set feature level");
 		return false;
 	}
 
@@ -224,31 +163,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	{
 		fprintf(stderr, "ERROR: Failed to create swapchain");
 		return false;
-	}
-
-	{	// HACK: check nVIDIA
-		bool nvidia_gpu = false;
-		IDXGIDevice *dxd;
-
-		if(SUCCEEDED(m_dev->QueryInterface(IID_PPV_ARGS(&dxd))))
-		{
-			IDXGIAdapter *dxa;
-
-			if(SUCCEEDED(dxd->GetAdapter(&dxa)))
-			{
-				DXGI_ADAPTER_DESC dxad;
-
-				if(SUCCEEDED(dxa->GetDesc(&dxad)))
-					nvidia_gpu = dxad.VendorId == 0x10DE;
-
-				dxa->Release();
-			}
-			dxd->Release();
-		}
-
-		bool spritehack_enabled = theApp.GetConfigB("UserHacks") && theApp.GetConfigI("UserHacks_SpriteHack");
-
-		m_hack_topleft_offset = (!nvidia_gpu || m_upscale_multiplier == 1 || spritehack_enabled) ? 0.0f : -0.01f;
 	}
 
 	D3D11_FEATURE_DATA_D3D10_X_HARDWARE_OPTIONS options;
@@ -473,6 +387,94 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	);
 
 	return true;
+}
+
+HRESULT GSDevice11::CreateD3DDevice()
+{
+	CComPtr<IDXGIAdapter1> adapter = NULL;
+	std::string adapter_id = theApp.GetConfigS("Adapter");
+	bool spritehack_enabled = theApp.GetConfigB("UserHacks") && theApp.GetConfigI("UserHacks_SpriteHack");
+	bool nvidia = false;
+
+	HRESULT hr = E_FAIL;
+
+	if (adapter_id != "default")
+	{
+		if (m_factory)
+			for (int i = 0;; i++)
+			{
+				hr = m_factory->EnumAdapters1(i, &adapter);
+
+				if (FAILED(hr))
+				{
+					adapter = NULL;
+					break;
+				}
+
+				DXGI_ADAPTER_DESC1 desc;
+				hr = adapter->GetDesc1(&desc);
+
+				if (FAILED(hr))
+				{
+					adapter = NULL;
+					break;
+				}
+
+				if (GSAdapter(desc) == adapter_id)
+				{
+					nvidia = desc.VendorId == 0x10DE;
+					break;
+				}
+
+				adapter = NULL;
+			}
+	}
+
+	// NOTE : D3D11_CREATE_DEVICE_SINGLETHREADED
+	//   This flag is safe as long as the DXGI's internal message pump is disabled or is on the
+	//   same thread as the GS window (which the emulator makes sure of, if it utilizes a
+	//   multithreaded GS).  Setting the flag is a nice and easy 5% speedup on GS-intensive scenes.
+
+	uint32 flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+
+#ifdef DEBUG
+	flags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
+
+	D3D_FEATURE_LEVEL level;
+
+	const D3D_FEATURE_LEVEL levels[] =
+	{
+		D3D_FEATURE_LEVEL_11_0,
+		D3D_FEATURE_LEVEL_10_1,
+		D3D_FEATURE_LEVEL_10_0,
+	};
+
+	hr = D3D11CreateDevice(
+		adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, flags,
+		levels, countof(levels), D3D11_SDK_VERSION,
+		&m_dev, &level, &m_ctx
+	);
+
+	if (FAILED(hr))
+	{
+		// fallback to the default adapter
+		hr = D3D11CreateDevice(
+			NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, flags,
+			levels, countof(levels), D3D11_SDK_VERSION,
+			&m_dev, &level, &m_ctx
+		);
+	}
+
+	if (!SetFeatureLevel(level))
+	{
+		return E_FAIL;
+	}
+
+	// hack for nvidia
+	m_hack_topleft_offset = (!nvidia || m_upscale_multiplier == 1 || spritehack_enabled) ? 0.0f : -0.01f;
+
+	return hr;
 }
 
 HRESULT GSDevice11::CreateSwapChain()

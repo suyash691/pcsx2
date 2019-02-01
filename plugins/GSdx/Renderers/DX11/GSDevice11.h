@@ -335,6 +335,7 @@ private:
 	void BeforeDraw();
 	void AfterDraw();
 	HRESULT CreateSwapChain();
+	HRESULT CreateD3DDevice();
 
 	//
 
@@ -463,7 +464,7 @@ public:
 	GSDevice11();
 	virtual ~GSDevice11() {}
 
-	bool SetFeatureLevel(D3D_FEATURE_LEVEL level, bool compat_mode);
+	bool SetFeatureLevel(D3D_FEATURE_LEVEL level);
 	void GetFeatureLevel(D3D_FEATURE_LEVEL& level) const { level = m_shader.level; }
 
 	static bool LoadD3DCompiler();
