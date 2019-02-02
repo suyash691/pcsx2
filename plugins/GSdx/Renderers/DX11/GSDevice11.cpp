@@ -133,8 +133,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	D3D11_BUFFER_DESC bd;
-	D3D11_SAMPLER_DESC sd;
 	HRESULT hr = E_FAIL;
 
 	hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_factory);
