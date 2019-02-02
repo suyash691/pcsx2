@@ -336,6 +336,7 @@ private:
 	void AfterDraw();
 	HRESULT CreateSwapChain();
 	HRESULT CreateD3DDevice();
+	HRESULT CreateConvert();
 
 	//
 

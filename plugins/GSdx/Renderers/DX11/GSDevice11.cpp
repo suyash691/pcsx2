@@ -165,50 +165,14 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	// convert
-
-	D3D11_INPUT_ELEMENT_DESC il_convert[] =
+	hr = CreateConvert();
+	if (FAILED(hr))
 	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	};
-
-	std::vector<char> shader;
-	theApp.LoadResource(IDR_CONVERT_FX, shader);
-	CreateShader(shader, "convert.fx", nullptr, "vs_main", nullptr, &m_convert.vs, il_convert, countof(il_convert), &m_convert.il);
-
-	std::string convert_mstr[1];
-
-	convert_mstr[0] = format("%d", m_upscale_multiplier ? m_upscale_multiplier : 1);
-
-	D3D_SHADER_MACRO convert_macro[] =
-	{
-		{"PS_SCALE_FACTOR", convert_mstr[0].c_str()},
-		{NULL, NULL},
-	};
-
-	for(size_t i = 0; i < countof(m_convert.ps); i++)
-	{
-		CreateShader(shader, "convert.fx", nullptr, format("ps_main%d", i).c_str(), convert_macro, &m_convert.ps[i]);
+		fprintf(stderr, "ERROR: Failed to create convert state.");
+		return false;
 	}
 
-	memset(&dsd, 0, sizeof(dsd));
-
-	hr = m_dev->CreateDepthStencilState(&dsd, &m_convert.dss);
-
-	dsd.DepthEnable = true;
-	dsd.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-	dsd.DepthFunc = D3D11_COMPARISON_ALWAYS;
-
-	hr = m_dev->CreateDepthStencilState(&dsd, &m_convert.dss_write);
-
-	memset(&bsd, 0, sizeof(bsd));
-
-	bsd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	hr = m_dev->CreateBlendState(&bsd, &m_convert.bs);
-
+	std::vector<char> shader;
 	// merge
 
 	memset(&bd, 0, sizeof(bd));
@@ -323,25 +287,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	hr = m_dev->CreateRasterizerState(&rd, &m_rs);
 
 	m_ctx->RSSetState(m_rs);
-
-	//
-
-	memset(&sd, 0, sizeof(sd));
-
-	sd.Filter = theApp.GetConfigI("MaxAnisotropy") && !theApp.GetConfigB("paltex") ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	sd.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sd.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sd.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
-	sd.MinLOD = -FLT_MAX;
-	sd.MaxLOD = FLT_MAX;
-	sd.MaxAnisotropy = theApp.GetConfigI("MaxAnisotropy");
-	sd.ComparisonFunc = D3D11_COMPARISON_NEVER;
-
-	hr = m_dev->CreateSamplerState(&sd, &m_convert.ln);
-
-	sd.Filter = theApp.GetConfigI("MaxAnisotropy") && !theApp.GetConfigB("paltex") ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_POINT;
-
-	hr = m_dev->CreateSamplerState(&sd, &m_convert.pt);
 
 	//
 
@@ -527,6 +472,88 @@ HRESULT GSDevice11::CreateSwapChain()
 			nullptr, nullptr, &m_swapchain
 		);
 	}
+
+	return hr;
+}
+
+HRESULT GSDevice11::CreateConvert()
+{
+	D3D11_INPUT_ELEMENT_DESC il_convert[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 16, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 28, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+
+	std::vector<char> shader;
+	theApp.LoadResource(IDR_CONVERT_FX, shader);
+	CreateShader(shader, "convert.fx", nullptr, "vs_main", nullptr, &m_convert.vs, il_convert, countof(il_convert), &m_convert.il);
+
+	std::string convert_mstr[1];
+
+	convert_mstr[0] = format("%d", m_upscale_multiplier ? m_upscale_multiplier : 1);
+
+	D3D_SHADER_MACRO convert_macro[] =
+	{
+		{"PS_SCALE_FACTOR", convert_mstr[0].c_str()},
+		{NULL, NULL},
+	};
+
+	for(size_t i = 0; i < countof(m_convert.ps); i++)
+	{
+		CreateShader(shader, "convert.fx", nullptr, format("ps_main%d", i).c_str(), convert_macro, &m_convert.ps[i]);
+	}
+
+	HRESULT hr = E_FAIL;
+
+	D3D11_DEPTH_STENCIL_DESC depth_stencil_desc = {};
+
+	hr = m_dev->CreateDepthStencilState(&depth_stencil_desc, &m_convert.dss);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	depth_stencil_desc.DepthEnable = true;
+	depth_stencil_desc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+	depth_stencil_desc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+
+	hr = m_dev->CreateDepthStencilState(&depth_stencil_desc, &m_convert.dss_write);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	D3D11_BLEND_DESC blend_desc = {};
+
+	blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	hr = m_dev->CreateBlendState(&blend_desc, &m_convert.bs);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	D3D11_SAMPLER_DESC sample_desc = {};
+
+	sample_desc.Filter = theApp.GetConfigI("MaxAnisotropy") && !theApp.GetConfigB("paltex") ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	sample_desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sample_desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sample_desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	sample_desc.MinLOD = -FLT_MAX;
+	sample_desc.MaxLOD = FLT_MAX;
+	sample_desc.MaxAnisotropy = theApp.GetConfigI("MaxAnisotropy");
+	sample_desc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+
+	hr = m_dev->CreateSamplerState(&sample_desc, &m_convert.ln);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	sample_desc.Filter = theApp.GetConfigI("MaxAnisotropy") && !theApp.GetConfigB("paltex") ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_POINT;
+
+	hr = m_dev->CreateSamplerState(&sample_desc, &m_convert.pt);
 
 	return hr;
 }
