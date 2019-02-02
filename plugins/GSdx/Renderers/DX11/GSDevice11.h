@@ -337,6 +337,7 @@ private:
 	HRESULT CreateSwapChain();
 	HRESULT CreateD3DDevice();
 	HRESULT CreateConvert();
+	HRESULT CreateMerge();
 
 	//
 

@@ -172,36 +172,13 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	std::vector<char> shader;
-	// merge
-
-	memset(&bd, 0, sizeof(bd));
-
-	bd.ByteWidth = sizeof(MergeConstantBuffer);
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	hr = m_dev->CreateBuffer(&bd, NULL, &m_merge.cb);
-
-	theApp.LoadResource(IDR_MERGE_FX, shader);
-	for(size_t i = 0; i < countof(m_merge.ps); i++)
+	hr = CreateMerge();
+	if (FAILED(hr))
 	{
-		CreateShader(shader, "merge.fx", nullptr, format("ps_main%d", i).c_str(), nullptr, &m_merge.ps[i]);
+		fprintf(stderr, "ERROR: Failed to create merge state.\n");
+		return false;
 	}
-
-	memset(&bsd, 0, sizeof(bsd));
-
-	bsd.RenderTarget[0].BlendEnable = true;
-	bsd.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
-	bsd.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
-	bsd.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
-	bsd.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-	bsd.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
-	bsd.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
-	bsd.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-
-	hr = m_dev->CreateBlendState(&bsd, &m_merge.bs);
-
+	std::vector<char> shader;
 	// interlace
 
 	memset(&bd, 0, sizeof(bd));
@@ -554,6 +531,45 @@ HRESULT GSDevice11::CreateConvert()
 	sample_desc.Filter = theApp.GetConfigI("MaxAnisotropy") && !theApp.GetConfigB("paltex") ? D3D11_FILTER_ANISOTROPIC : D3D11_FILTER_MIN_MAG_MIP_POINT;
 
 	hr = m_dev->CreateSamplerState(&sample_desc, &m_convert.pt);
+
+	return hr;
+}
+
+HRESULT GSDevice11::CreateMerge()
+{
+	D3D11_BUFFER_DESC buffer_desc = {};
+
+	buffer_desc.ByteWidth = sizeof(MergeConstantBuffer);
+	buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	HRESULT hr = E_FAIL;
+
+	hr = m_dev->CreateBuffer(&buffer_desc, NULL, &m_merge.cb);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	std::vector<char> shader;
+	theApp.LoadResource(IDR_MERGE_FX, shader);
+	for(size_t i = 0; i < countof(m_merge.ps); i++)
+	{
+		CreateShader(shader, "merge.fx", nullptr, format("ps_main%d", i).c_str(), nullptr, &m_merge.ps[i]);
+	}
+
+	D3D11_BLEND_DESC blend_desc = {};
+
+	blend_desc.RenderTarget[0].BlendEnable = true;
+	blend_desc.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+	blend_desc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC_ALPHA;
+	blend_desc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+	blend_desc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+	blend_desc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+	blend_desc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
+	blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+
+	hr = m_dev->CreateBlendState(&blend_desc, &m_merge.bs);
 
 	return hr;
 }
