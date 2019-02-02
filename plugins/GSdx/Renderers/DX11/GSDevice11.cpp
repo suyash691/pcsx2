@@ -136,7 +136,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	D3D11_BUFFER_DESC bd;
 	D3D11_SAMPLER_DESC sd;
 	D3D11_DEPTH_STENCIL_DESC dsd;
-	D3D11_RASTERIZER_DESC rd;
 	D3D11_BLEND_DESC bsd;
 	HRESULT hr = E_FAIL;
 
@@ -204,20 +203,25 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	memset(&rd, 0, sizeof(rd));
+	D3D11_RASTERIZER_DESC rasterizer_desc = {};
 
-	rd.FillMode = D3D11_FILL_SOLID;
-	rd.CullMode = D3D11_CULL_NONE;
-	rd.FrontCounterClockwise = false;
-	rd.DepthBias = false;
-	rd.DepthBiasClamp = 0;
-	rd.SlopeScaledDepthBias = 0;
-	rd.DepthClipEnable = false; // ???
-	rd.ScissorEnable = true;
-	rd.MultisampleEnable = true;
-	rd.AntialiasedLineEnable = false;
+	rasterizer_desc.FillMode = D3D11_FILL_SOLID;
+	rasterizer_desc.CullMode = D3D11_CULL_NONE;
+	rasterizer_desc.FrontCounterClockwise = false;
+	rasterizer_desc.DepthBias = false;
+	rasterizer_desc.DepthBiasClamp = 0;
+	rasterizer_desc.SlopeScaledDepthBias = 0;
+	rasterizer_desc.DepthClipEnable = false;
+	rasterizer_desc.ScissorEnable = true;
+	rasterizer_desc.MultisampleEnable = true;
+	rasterizer_desc.AntialiasedLineEnable = false;
 
-	hr = m_dev->CreateRasterizerState(&rd, &m_rs);
+	hr = m_dev->CreateRasterizerState(&rasterizer_desc, &m_rs);
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to create rasterizer state\n");
+		return false;
+	}
 
 	m_ctx->RSSetState(m_rs);
 
