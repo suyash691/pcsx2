@@ -135,7 +135,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 
 	D3D11_BUFFER_DESC bd;
 	D3D11_SAMPLER_DESC sd;
-	D3D11_DEPTH_STENCIL_DESC dsd;
 	D3D11_BLEND_DESC bsd;
 	HRESULT hr = E_FAIL;
 
@@ -210,6 +209,28 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
+	D3D11_DEPTH_STENCIL_DESC depth_stencil_desc = {};
+
+	depth_stencil_desc.DepthEnable = false;
+	depth_stencil_desc.StencilEnable = true;
+	depth_stencil_desc.StencilReadMask = 1;
+	depth_stencil_desc.StencilWriteMask = 1;
+	depth_stencil_desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depth_stencil_desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+	depth_stencil_desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depth_stencil_desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	depth_stencil_desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	depth_stencil_desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
+	depth_stencil_desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	depth_stencil_desc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+
+	hr = m_dev->CreateDepthStencilState(&depth_stencil_desc, &m_date.dss);
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to create DATE\n");
+		return false;
+	}
+
 	D3D11_RASTERIZER_DESC rasterizer_desc = {};
 
 	rasterizer_desc.FillMode = D3D11_FILL_SOLID;
@@ -231,23 +252,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	}
 
 	m_ctx->RSSetState(m_rs);
-
-	memset(&dsd, 0, sizeof(dsd));
-
-	dsd.DepthEnable = false;
-	dsd.StencilEnable = true;
-	dsd.StencilReadMask = 1;
-	dsd.StencilWriteMask = 1;
-	dsd.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	dsd.FrontFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
-	dsd.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	dsd.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-	dsd.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
-	dsd.BackFace.StencilPassOp = D3D11_STENCIL_OP_REPLACE;
-	dsd.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-	dsd.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
-
-	m_dev->CreateDepthStencilState(&dsd, &m_date.dss);
 
 	D3D11_BLEND_DESC blend;
 
