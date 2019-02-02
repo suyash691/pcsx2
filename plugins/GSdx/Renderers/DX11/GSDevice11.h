@@ -340,6 +340,8 @@ private:
 	HRESULT CreateMerge();
 	HRESULT CreateInterlace();
 	HRESULT CreateShadeBoost();
+	HRESULT CreateExternalFX();
+	HRESULT CreateFXAA();
 
 	//
 

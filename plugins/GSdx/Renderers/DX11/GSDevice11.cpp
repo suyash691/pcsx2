@@ -193,27 +193,19 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	// External fx shader
+	hr = CreateExternalFX();
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to create external FX\n");
+		return false;
+	}
 
-	memset(&bd, 0, sizeof(bd));
-
-	bd.ByteWidth = sizeof(ExternalFXConstantBuffer);
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	hr = m_dev->CreateBuffer(&bd, NULL, &m_shaderfx.cb);
-
-	// Fxaa
-
-	memset(&bd, 0, sizeof(bd));
-
-	bd.ByteWidth = sizeof(FXAAConstantBuffer);
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	hr = m_dev->CreateBuffer(&bd, NULL, &m_fxaa.cb);
-
-	//
+	hr = CreateFXAA();
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to create FXAA\n");
+		return false;
+	}
 
 	memset(&rd, 0, sizeof(rd));
 
@@ -595,6 +587,35 @@ HRESULT GSDevice11::CreateShadeBoost()
 	theApp.LoadResource(IDR_SHADEBOOST_FX, shader);
 
 	CreateShader(shader, "shadeboost.fx", nullptr, "ps_main", macro, &m_shadeboost.ps);
+
+	return hr;
+}
+
+HRESULT GSDevice11::CreateExternalFX()
+{
+
+	D3D11_BUFFER_DESC buffer_desc = {};
+
+	buffer_desc.ByteWidth = sizeof(ExternalFXConstantBuffer);
+	buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	HRESULT hr = E_FAIL;
+	hr = m_dev->CreateBuffer(&buffer_desc, NULL, &m_shaderfx.cb);
+
+	return hr;
+}
+
+HRESULT GSDevice11::CreateFXAA()
+{
+	D3D11_BUFFER_DESC buffer_desc = {};
+
+	buffer_desc.ByteWidth = sizeof(FXAAConstantBuffer);
+	buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	HRESULT hr = E_FAIL;
+	hr = m_dev->CreateBuffer(&buffer_desc, NULL, &m_fxaa.cb);
 
 	return hr;
 }
