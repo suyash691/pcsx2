@@ -338,6 +338,7 @@ private:
 	HRESULT CreateD3DDevice();
 	HRESULT CreateConvert();
 	HRESULT CreateMerge();
+	HRESULT CreateInterlace();
 
 	//
 

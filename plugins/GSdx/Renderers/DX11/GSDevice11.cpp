@@ -178,22 +178,15 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		fprintf(stderr, "ERROR: Failed to create merge state.\n");
 		return false;
 	}
-	std::vector<char> shader;
-	// interlace
 
-	memset(&bd, 0, sizeof(bd));
-
-	bd.ByteWidth = sizeof(InterlaceConstantBuffer);
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	hr = m_dev->CreateBuffer(&bd, NULL, &m_interlace.cb);
-
-	theApp.LoadResource(IDR_INTERLACE_FX, shader);
-	for(size_t i = 0; i < countof(m_interlace.ps); i++)
+	hr = CreateInterlace();
+	if (FAILED(hr))
 	{
-		CreateShader(shader, "interlace.fx", nullptr, format("ps_main%d", i).c_str(), nullptr, &m_interlace.ps[i]);
+		fprintf(stderr, "ERROR: Failed to create interlace state\n");
+		return false;
 	}
+
+	std::vector<char> shader;
 
 	// Shade Boos
 
@@ -570,6 +563,27 @@ HRESULT GSDevice11::CreateMerge()
 	blend_desc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
 
 	hr = m_dev->CreateBlendState(&blend_desc, &m_merge.bs);
+
+	return hr;
+}
+
+HRESULT GSDevice11::CreateInterlace()
+{
+	D3D11_BUFFER_DESC buffer_desc = {};
+
+	buffer_desc.ByteWidth = sizeof(InterlaceConstantBuffer);
+	buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	HRESULT hr = E_FAIL;
+	hr = m_dev->CreateBuffer(&buffer_desc, NULL, &m_interlace.cb);
+
+	std::vector<char> shader;
+	theApp.LoadResource(IDR_INTERLACE_FX, shader);
+	for(size_t i = 0; i < countof(m_interlace.ps); i++)
+	{
+		CreateShader(shader, "interlace.fx", nullptr, format("ps_main%d", i).c_str(), nullptr, &m_interlace.ps[i]);
+	}
 
 	return hr;
 }
