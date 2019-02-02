@@ -135,7 +135,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 
 	D3D11_BUFFER_DESC bd;
 	D3D11_SAMPLER_DESC sd;
-	D3D11_BLEND_DESC bsd;
 	HRESULT hr = E_FAIL;
 
 	hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_factory);
@@ -231,6 +230,15 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
+	D3D11_BLEND_DESC blend_desc = {};
+
+	hr = m_dev->CreateBlendState(&blend_desc, &m_date.bs);
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to create blend state\n");
+		return false;
+	}
+
 	D3D11_RASTERIZER_DESC rasterizer_desc = {};
 
 	rasterizer_desc.FillMode = D3D11_FILL_SOLID;
@@ -252,12 +260,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	}
 
 	m_ctx->RSSetState(m_rs);
-
-	D3D11_BLEND_DESC blend;
-
-	memset(&blend, 0, sizeof(blend));
-
-	m_dev->CreateBlendState(&blend, &m_date.bs);
 
 	GSVector2i tex_font = m_osd.get_texture_font_size();
 
