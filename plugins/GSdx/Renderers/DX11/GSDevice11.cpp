@@ -203,6 +203,13 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
+	hr = CreateTextureFX();
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to create texturefx\n");
+		return false;
+	}
+
 	D3D11_RASTERIZER_DESC rasterizer_desc = {};
 
 	rasterizer_desc.FillMode = D3D11_FILL_SOLID;
@@ -224,16 +231,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 	}
 
 	m_ctx->RSSetState(m_rs);
-
-	//
-
-	Reset(1, 1);
-
-	//
-
-	CreateTextureFX();
-
-	//
 
 	memset(&dsd, 0, sizeof(dsd));
 
