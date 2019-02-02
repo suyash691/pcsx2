@@ -165,10 +165,6 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	D3D11_FEATURE_DATA_D3D10_X_HARDWARE_OPTIONS options;
-
-	hr = m_dev->CheckFeatureSupport(D3D11_FEATURE_D3D10_X_HARDWARE_OPTIONS, &options, sizeof(D3D11_FEATURE_D3D10_X_HARDWARE_OPTIONS));
-
 	// convert
 
 	D3D11_INPUT_ELEMENT_DESC il_convert[] =
