@@ -186,38 +186,12 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 		return false;
 	}
 
-	std::vector<char> shader;
-
-	// Shade Boos
-
-	int ShadeBoost_Contrast = theApp.GetConfigI("ShadeBoost_Contrast");
-	int ShadeBoost_Brightness = theApp.GetConfigI("ShadeBoost_Brightness");
-	int ShadeBoost_Saturation = theApp.GetConfigI("ShadeBoost_Saturation");
-
-	std::string str[3];
-
-	str[0] = format("%d", ShadeBoost_Saturation);
-	str[1] = format("%d", ShadeBoost_Brightness);
-	str[2] = format("%d", ShadeBoost_Contrast);
-
-	D3D_SHADER_MACRO macro[] =
+	hr = CreateShadeBoost();
+	if (FAILED(hr))
 	{
-		{"SB_SATURATION", str[0].c_str()},
-		{"SB_BRIGHTNESS", str[1].c_str()},
-		{"SB_CONTRAST", str[2].c_str()},
-		{NULL, NULL},
-	};
-
-	memset(&bd, 0, sizeof(bd));
-
-	bd.ByteWidth = sizeof(ShadeBoostConstantBuffer);
-	bd.Usage = D3D11_USAGE_DEFAULT;
-	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-
-	hr = m_dev->CreateBuffer(&bd, NULL, &m_shadeboost.cb);
-
-	theApp.LoadResource(IDR_SHADEBOOST_FX, shader);
-	CreateShader(shader, "shadeboost.fx", nullptr, "ps_main", macro, &m_shadeboost.ps);
+		fprintf(stderr, "ERROR: Failed to create shade boost state\n");
+		return false;
+	}
 
 	// External fx shader
 
@@ -584,6 +558,43 @@ HRESULT GSDevice11::CreateInterlace()
 	{
 		CreateShader(shader, "interlace.fx", nullptr, format("ps_main%d", i).c_str(), nullptr, &m_interlace.ps[i]);
 	}
+
+	return hr;
+}
+
+HRESULT GSDevice11::CreateShadeBoost()
+{
+	int contrast = theApp.GetConfigI("ShadeBoost_Contrast");
+	int brightness = theApp.GetConfigI("ShadeBoost_Brightness");
+	int saturation = theApp.GetConfigI("ShadeBoost_Saturation");
+
+	std::string str[3];
+
+	str[0] = format("%d", saturation);
+	str[1] = format("%d", brightness);
+	str[2] = format("%d", contrast);
+
+	D3D_SHADER_MACRO macro[] =
+	{
+		{"SB_SATURATION", str[0].c_str()},
+		{"SB_BRIGHTNESS", str[1].c_str()},
+		{"SB_CONTRAST", str[2].c_str()},
+		{NULL, NULL},
+	};
+
+	D3D11_BUFFER_DESC buffer_desc = {};
+
+	buffer_desc.ByteWidth = sizeof(ShadeBoostConstantBuffer);
+	buffer_desc.Usage = D3D11_USAGE_DEFAULT;
+	buffer_desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+
+	HRESULT hr = E_FAIL;
+	hr = m_dev->CreateBuffer(&buffer_desc, NULL, &m_shadeboost.cb);
+
+	std::vector<char> shader;
+	theApp.LoadResource(IDR_SHADEBOOST_FX, shader);
+
+	CreateShader(shader, "shadeboost.fx", nullptr, "ps_main", macro, &m_shadeboost.ps);
 
 	return hr;
 }

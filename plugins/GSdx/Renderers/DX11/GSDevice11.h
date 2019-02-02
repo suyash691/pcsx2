@@ -339,6 +339,7 @@ private:
 	HRESULT CreateConvert();
 	HRESULT CreateMerge();
 	HRESULT CreateInterlace();
+	HRESULT CreateShadeBoost();
 
 	//
 
