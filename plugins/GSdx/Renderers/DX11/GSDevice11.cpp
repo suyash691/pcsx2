@@ -28,7 +28,11 @@
 #include <VersionHelpers.h>
 
 HMODULE GSDevice11::s_d3d_compiler_dll = nullptr;
+HMODULE GSDevice11::s_d3d = nullptr;
+HMODULE GSDevice11::s_dxgi = nullptr;
 decltype(&D3DCompile) GSDevice11::s_pD3DCompile = nullptr;
+CREATE_DEVICE s_create_device;
+CREATE_FACTORY s_create_factory;
 bool GSDevice11::s_old_d3d_compiler_dll;
 
 GSDevice11::GSDevice11()
@@ -45,6 +49,56 @@ GSDevice11::GSDevice11()
 	m_upscale_multiplier = theApp.GetConfigI("upscale_multiplier");
 
 	m_tearing_support = false;
+}
+
+HRESULT GSDevice11::LoadD3D()
+{
+	if (s_d3d)
+	{
+		return S_OK;
+	}
+
+	s_d3d = LoadLibrary("d3d11.dll");
+	if (!s_d3d)
+	{
+		return E_FAIL;
+	}
+
+	s_create_device = (CREATE_DEVICE)GetProcAddress(s_d3d, "D3D11CreateDevice");
+	if (!s_create_device)
+	{
+		FreeLibrary(s_d3d);
+		s_d3d = nullptr;
+
+		return E_FAIL;
+	}
+
+	return S_OK;
+}
+
+HRESULT GSDevice11::LoadDXGI()
+{
+	if (s_dxgi)
+	{
+		return S_OK;
+	}
+
+	s_dxgi = LoadLibrary("dxgi.dll");
+	if (!s_dxgi)
+	{
+		return E_FAIL;
+	}
+
+	s_create_factory = (CREATE_FACTORY)GetProcAddress(s_dxgi, "CreateDXGIFactory1");
+	if (!s_create_factory)
+	{
+		FreeLibrary(s_dxgi);
+		s_dxgi = nullptr;
+
+		return E_FAIL;
+	}
+
+	return S_OK;
 }
 
 bool GSDevice11::LoadD3DCompiler()
@@ -81,6 +135,30 @@ bool GSDevice11::LoadD3DCompiler()
 	FreeLibrary(s_d3d_compiler_dll);
 	s_d3d_compiler_dll = nullptr;
 	return false;
+}
+
+void GSDevice11::FreeD3D()
+{
+	s_create_device = nullptr;
+
+	if (s_d3d)
+	{
+		FreeLibrary(s_d3d);
+	}
+
+	s_d3d = nullptr;
+}
+
+void GSDevice11::FreeDXGI()
+{
+	s_create_factory = nullptr;
+
+	if (s_dxgi)
+	{
+		FreeLibrary(s_dxgi);
+	}
+
+	s_dxgi = nullptr;
 }
 
 void GSDevice11::FreeD3DCompiler()
@@ -135,7 +213,28 @@ bool GSDevice11::Create(const std::shared_ptr<GSWnd> &wnd)
 
 	HRESULT hr = E_FAIL;
 
-	hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&m_factory);
+	hr = LoadD3D();
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to load d3d\n");
+
+		FreeD3D();
+
+		return false;
+	}
+
+	hr = LoadDXGI();
+	if (FAILED(hr))
+	{
+		fprintf(stderr, "ERROR: Failed to load dxgi\n");
+
+		FreeD3D();
+		FreeDXGI();
+
+		return false;
+	}
+
+	hr = s_create_factory(__uuidof(IDXGIFactory1), (void**)&m_factory);
 
 	if (FAILED(hr))
 	{
@@ -329,7 +428,7 @@ HRESULT GSDevice11::CreateD3DDevice()
 		D3D_FEATURE_LEVEL_10_0,
 	};
 
-	hr = D3D11CreateDevice(
+	hr = s_create_device(
 		adapter, D3D_DRIVER_TYPE_UNKNOWN, NULL, flags,
 		levels, countof(levels), D3D11_SDK_VERSION,
 		&m_dev, &level, &m_ctx
@@ -338,7 +437,7 @@ HRESULT GSDevice11::CreateD3DDevice()
 	if (FAILED(hr))
 	{
 		// fallback to the default adapter
-		hr = D3D11CreateDevice(
+		hr = s_create_device(
 			NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, flags,
 			levels, countof(levels), D3D11_SDK_VERSION,
 			&m_dev, &level, &m_ctx

@@ -359,62 +359,29 @@ bool GSUtil::CheckDirectX()
 	return false;
 }
 
-// ---------------------------------------------------------------------------------
-//  DX11 Detection (includes DXGI detection and dynamic library method bindings)
-// ---------------------------------------------------------------------------------
-//  Code 'Borrowed' from Microsoft's DXGI sources -- Modified to suit our needs. --air
-//  Stripped down because of unnecessary complexity and false positives
-//  e.g. (d3d11_beta.dll would fail at device creation time) --pseudonym
-
-static int s_DXGI;
-static int s_D3D11;
-
-bool GSUtil::CheckDXGI()
-{
-	if (0 == s_DXGI)
-	{
-		HMODULE hmod = LoadLibrary("dxgi.dll");
-		s_DXGI = hmod ? 1 : -1;
-		if (hmod)
-			FreeLibrary(hmod);
-	}
-
-	return s_DXGI > 0;
-}
-
-bool GSUtil::CheckD3D11()
-{
-	if (!CheckDXGI())
-		return false;
-
-	if (0 == s_D3D11)
-	{
-		HMODULE hmod = LoadLibrary("d3d11.dll");
-		s_D3D11 = hmod ? 1 : -1;
-		if (hmod)
-			FreeLibrary(hmod);
-	}
-
-	return s_D3D11 > 0;
-}
-
 D3D_FEATURE_LEVEL GSUtil::CheckDirect3D11Level(IDXGIAdapter *adapter, D3D_DRIVER_TYPE type)
 {
 	HRESULT hr;
 	D3D_FEATURE_LEVEL level;
 
-	if(!CheckD3D11())
+	if (FAILED(GSDevice11::LoadD3D()))
+	{
+		GSDevice11::FreeD3D();
 		return (D3D_FEATURE_LEVEL)0;
+	}
 
-	hr = D3D11CreateDevice(adapter, type, NULL, 0, NULL, 0, D3D11_SDK_VERSION, NULL, &level, NULL);
+	hr = s_create_device(adapter, type, NULL, 0, NULL, 0, D3D11_SDK_VERSION, NULL, &level, NULL);
 
+	GSDevice11::FreeD3D();
 	return SUCCEEDED(hr) ? level : (D3D_FEATURE_LEVEL)0;
 }
 
 GSRendererType GSUtil::GetBestRenderer()
 {
 	CComPtr<IDXGIFactory1> dxgi_factory;
-	if (SUCCEEDED(CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory))))
+	GSDevice11::LoadDXGI();
+
+	if (SUCCEEDED(s_create_factory(IID_PPV_ARGS(&dxgi_factory))))
 	{
 		CComPtr<IDXGIAdapter1> adapter;
 		if (SUCCEEDED(dxgi_factory->EnumAdapters1(0, &adapter)))
@@ -425,10 +392,16 @@ GSRendererType GSUtil::GetBestRenderer()
 				D3D_FEATURE_LEVEL level = GSUtil::CheckDirect3D11Level();
 				// Check for Nvidia VendorID. Latest OpenGL features need at least DX11 level GPU
 				if (desc.VendorId == 0x10DE && level >= D3D_FEATURE_LEVEL_11_0)
+				{
+					GSDevice11::FreeDXGI();
 					return GSRendererType::OGL_HW;
+				}
 			}
 		}
 	}
+
+	GSDevice11::FreeDXGI();
+
 	return GSRendererType::DX1011_HW;
 }
 

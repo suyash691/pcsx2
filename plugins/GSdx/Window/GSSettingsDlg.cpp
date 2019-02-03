@@ -60,8 +60,9 @@ GSSettingsDlg::GSSettingsDlg()
 
 std::vector<GSSettingsDlg::Adapter> GSSettingsDlg::EnumerateD3D11Adapters()
 {
+	GSDevice11::LoadDXGI();
 	CComPtr<IDXGIFactory1> dxgi_factory;
-	CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
+	s_create_factory(IID_PPV_ARGS(&dxgi_factory));
 	if (dxgi_factory == nullptr)
 		return {};
 

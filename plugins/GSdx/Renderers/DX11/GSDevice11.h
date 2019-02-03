@@ -456,6 +456,8 @@ protected:
 	struct {D3D_FEATURE_LEVEL level; std::string model, vs, gs, ps, cs;} m_shader;
 
 	static HMODULE s_d3d_compiler_dll;
+	static HMODULE s_d3d;
+	static HMODULE s_dxgi;
 	static decltype(&D3DCompile) s_pD3DCompile;
 	// Older version doesn't support D3D_COMPILE_STANDARD_FILE_INCLUDE, which
 	// could be useful for external shaders.
@@ -468,6 +470,10 @@ public:
 	bool SetFeatureLevel(D3D_FEATURE_LEVEL level);
 	void GetFeatureLevel(D3D_FEATURE_LEVEL& level) const { level = m_shader.level; }
 
+	static HRESULT LoadD3D();
+	static HRESULT LoadDXGI();
+	static void FreeD3D();
+	static void FreeDXGI();
 	static bool LoadD3DCompiler();
 	static void FreeD3DCompiler();
 
@@ -565,3 +571,13 @@ public:
 	}
 };
 
+typedef HRESULT(WINAPI* CREATE_DEVICE)(
+	IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT,
+	CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**,
+	D3D_FEATURE_LEVEL*, ID3D11DeviceContext**
+);
+
+typedef HRESULT(WINAPI* CREATE_FACTORY)(REFIID, void**);
+
+extern CREATE_DEVICE s_create_device;
+extern CREATE_FACTORY s_create_factory;
