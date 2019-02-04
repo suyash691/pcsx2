@@ -459,9 +459,6 @@ protected:
 	static HMODULE s_d3d;
 	static HMODULE s_dxgi;
 	static decltype(&D3DCompile) s_pD3DCompile;
-	// Older version doesn't support D3D_COMPILE_STANDARD_FILE_INCLUDE, which
-	// could be useful for external shaders.
-	static bool s_old_d3d_compiler_dll;
 
 public:
 	GSDevice11();

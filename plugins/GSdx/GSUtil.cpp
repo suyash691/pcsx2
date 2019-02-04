@@ -341,22 +341,25 @@ std::string GSUtil::GetDeviceUniqueName(cl::Device& device)
 
 bool GSUtil::CheckDirectX()
 {
-	if (GSDevice11::LoadD3DCompiler())
+	if (!GSDevice11::LoadD3DCompiler())
 	{
 		GSDevice11::FreeD3DCompiler();
-		return true;
+
+		MessageBox(
+			nullptr, TEXT(
+				"D3DCompiler_47 failed to load.\n"
+				"Either your system is broken or you need to install "
+				"https://www.catalog.update.microsoft.com/search.aspx?q=kb4019990\n"
+			),
+			TEXT("GSdx"), MB_YESNO
+		);
+
+		return false;
 	}
 
-	// User's system is likely broken if it fails and is Windows 8.1 or greater.
-	if (!IsWindows8Point1OrGreater())
-	{
-		printf("Cannot find d3dcompiler_43.dll\n");
-		if (MessageBox(nullptr, TEXT("You need to update some DirectX libraries, would you like to do it now?"), TEXT("GSdx"), MB_YESNO) == IDYES)
-		{
-			ShellExecute(nullptr, TEXT("open"), TEXT("https://www.microsoft.com/en-us/download/details.aspx?id=8109"), nullptr, nullptr, SW_SHOWNORMAL);
-		}
-	}
-	return false;
+	GSDevice11::FreeD3DCompiler();
+
+	return true;
 }
 
 D3D_FEATURE_LEVEL GSUtil::CheckDirect3D11Level(IDXGIAdapter *adapter, D3D_DRIVER_TYPE type)
