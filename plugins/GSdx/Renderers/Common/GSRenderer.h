@@ -25,6 +25,8 @@
 #include "Window/GSWnd.h"
 #include "GSState.h"
 #include "GSCapture.h"
+#include <fstream>
+#include <iomanip>
 
 class GSRenderer : public GSState
 {
@@ -81,4 +83,6 @@ public:
 	std::mutex m_pGSsetTitle_Crit;
 
 	char m_GStitleInfoBuffer[128];
+
+	void DumpVertices(std::string& filename);
 };

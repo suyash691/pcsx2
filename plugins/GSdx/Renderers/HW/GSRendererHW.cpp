@@ -1067,6 +1067,10 @@ void GSRendererHW::Draw()
 
 			m_env.Dump(m_dump_root+s);
 			m_context->Dump(m_dump_root+s);
+
+			// dump vertices
+			s = format("%05d_vertex.txt", s_n);
+			DumpVertices(m_dump_root+s);
 		}
 
 		if(s_savet && s_n >= s_saven && m_src)
