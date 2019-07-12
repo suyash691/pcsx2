@@ -90,6 +90,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Renderers\Vulkan\vulkanloader.cpp" />
     <ClCompile Include="Renderers\OpenGL\GLLoader.cpp" />
     <ClCompile Include="Renderers\OpenGL\GLState.cpp" />
     <ClCompile Include="GS.cpp" />
@@ -177,6 +178,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="Renderers\Vulkan\vulkanloader.hpp" />
     <ClInclude Include="Renderers\OpenGL\GLLoader.h" />
     <ClInclude Include="Renderers\OpenGL\GLState.h" />
     <ClInclude Include="GS.h" />
@@ -269,6 +271,7 @@
     <ClInclude Include="xbyak\xbyak_util.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Renderers\Vulkan\vulkan.inl" />
     <None Include="GSdx.def" />
     <None Include="res\fxaa.fx" />
     <None Include="res\logo_ogl.bmp" />

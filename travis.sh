@@ -14,6 +14,8 @@ linux_32_before_install() {
 	sudo dpkg --add-architecture i386
 
 	sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+	wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+	sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.1.108-xenial.list http://packages.lunarg.com/vulkan/1.1.108/lunarg-vulkan-1.1.108-xenial.list
 
 	# Compilers
 	if [ "${CXX}" = "clang++" ]; then
@@ -60,6 +62,7 @@ linux_32_before_install() {
 		zlib1g-dev:i386 \
 		libxml2-dev:i386 \
 		libpcap0.8-dev:i386 \
+		vulkan-sdk \
 		${COMPILER_PACKAGE}
 
 	# Manually add ccache symlinks for clang
@@ -99,6 +102,9 @@ linux_64_before_install() {
 		COMPILER_PACKAGE="g++-${VERSION}"
 	fi
 
+	wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
+	sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-1.1.108-xenial.list http://packages.lunarg.com/vulkan/1.1.108/lunarg-vulkan-1.1.108-xenial.list
+	
 	sudo apt-get -qq update
 
 	# libgl1-mesa-dev, liblzma-dev, libxext-dev, zlib1g-dev already installed on
@@ -115,6 +121,7 @@ linux_64_before_install() {
 		portaudio19-dev \
 		libxml2-dev \
 		libpcap0.8-dev \
+		vulkan-sdk \
 		${COMPILER_PACKAGE}
 }
 

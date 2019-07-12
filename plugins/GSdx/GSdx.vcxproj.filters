@@ -267,6 +267,9 @@
     <ClCompile Include="Window\GSSettingsDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Renderers\Vulkan\vulkanloader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderers\OpenGL\GLLoader.h">
@@ -542,8 +545,14 @@
     <ClInclude Include="Renderers\Common\GSFastList.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Renderers\Vulkan\vulkanloader.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Renderers\Vulkan\vulkan.inl">
+      <Filter>Header Files</Filter>
+    </None>
     <None Include="GSdx.def" />
     <None Include="res\fxaa.fx">
       <Filter>Shaders</Filter>

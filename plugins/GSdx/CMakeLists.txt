@@ -121,6 +121,7 @@ set(GSdxSources
     Renderers/OpenGL/GSTextureCacheOGL.cpp
     Renderers/OpenGL/GSTextureOGL.cpp
     Renderers/OpenCL/GSRendererCL.cpp
+    Renderers/Vulkan/vulkanloader.cpp
     Window/GSSetting.cpp
     Window/GSWnd.cpp
     )
@@ -200,6 +201,7 @@ set(GSdxHeaders
     Renderers/OpenGL/GSUniformBufferOGL.h
     Renderers/OpenGL/GSVertexArrayOGL.h
     Renderers/OpenCL/GSRendererCL.h
+    Renderers/Vulkan/vulkanloader.hpp
     Window/GSCaptureDlg.h
     Window/GSDialog.h
     Window/GSSetting.h
