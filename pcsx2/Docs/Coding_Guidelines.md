@@ -7,6 +7,10 @@ This guideline is subject to change as the need arises.
 
 - [General Rules](#general-rules)
   * [Use Tabs For Indentation](#use-tabs-for-indentation)
+  * [Indent Namespaces](#indent-namespaces)
+  * [Indent Members](#indent-members)
+  * [No Indentation For Labels](#no-indentation-for-labels)
+  * [Place The Public API First](#place-the-public-api-first)
   * [Use Descriptive Names](#use-descriptive-names)
   * [Avoid Operator Overloading](#avoid-operator-overloading)
   * [Use Scoping Where Applicable](#use-scoping-where-applicable)
@@ -145,7 +149,7 @@ private:
 }
 
 ```
-Don't distract other developers with implementation details. Place the public api first.
+Don't distract other developers with implementation details. Place the public api first where it is easy to find.
 
 ### Use Descriptive Names
 ```cpp
