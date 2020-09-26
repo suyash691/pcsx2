@@ -237,6 +237,12 @@
     <ClCompile Include="Window\GSSettingsDlg.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Renderers\OpenGL\GLContext.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderers\OpenGL\GLContext\GLContextWGL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Renderers\OpenGL\GLLoader.h">
@@ -471,6 +477,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Renderers\Common\GSFastList.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderers\OpenGL\GLContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderers\OpenGL\GLContext\GLContextWGL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

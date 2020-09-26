@@ -91,6 +91,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Renderers\OpenGL\GLContext.cpp" />
+    <ClCompile Include="Renderers\OpenGL\GLContext\GLContextWGL.cpp" />
     <ClCompile Include="Renderers\OpenGL\GLLoader.cpp" />
     <ClCompile Include="Renderers\OpenGL\GLState.cpp" />
     <ClCompile Include="GS.cpp" />
@@ -168,6 +170,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
+    <ClInclude Include="Renderers\OpenGL\GLContext.h" />
+    <ClInclude Include="Renderers\OpenGL\GLContext\GLContextWGL.h" />
     <ClInclude Include="Renderers\OpenGL\GLLoader.h" />
     <ClInclude Include="Renderers\OpenGL\GLState.h" />
     <ClInclude Include="GS.h" />
