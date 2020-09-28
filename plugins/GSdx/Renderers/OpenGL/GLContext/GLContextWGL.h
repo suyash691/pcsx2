@@ -11,7 +11,7 @@ class GLContextWGL : public GLContext
 
 		bool SetSwapInterval(int interval) override;
 		bool Swap() override;
-		bool Init(void* handle) override;
+		bool Init(void** dsp) override;
 	private:
 		HGLRC CreateCoreContext(HDC device_context);
 

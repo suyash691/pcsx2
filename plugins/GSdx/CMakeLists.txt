@@ -5,7 +5,6 @@ if(NOT TOP_CMAKE_WAS_SOURCED)
     It is advice to delete all wrongly generated cmake stuff => CMakeFiles & CMakeCache.txt")
 endif()
 
-
 # plugin name (no version number to ease future version bump and bisect)
 set(Output GSdx)
 
@@ -97,6 +96,8 @@ set(GSdxSources
     Renderers/SW/GSSetupPrimCodeGenerator.x86.avx2.cpp
     Renderers/SW/GSTextureCacheSW.cpp
     Renderers/SW/GSTextureSW.cpp
+    Renderers/OpenGL/GLContext.cpp
+    Renderers/OpenGL/GLContext/GLContextEGL.cpp
     Renderers/OpenGL/GLLoader.cpp
     Renderers/OpenGL/GLState.cpp
     Renderers/OpenGL/GSDeviceOGL.cpp
@@ -162,6 +163,8 @@ set(GSdxHeaders
     Renderers/SW/GSTextureCacheSW.h
     Renderers/SW/GSTextureSW.h
     Renderers/SW/GSVertexSW.h
+    Renderers/OpenGL/GLContext.h
+    Renderers/OpenGL/GLContext/GLContextEGL.h
     Renderers/OpenGL/GLLoader.h
     Renderers/OpenGL/GLState.h
     Renderers/OpenGL/GSDeviceOGL.h

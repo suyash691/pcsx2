@@ -55,8 +55,10 @@ GLContextWGL::~GLContextWGL()
 	}
 }
 
-bool GLContextWGL::Init(void* handle)
+bool GLContextWGL::Init(void** dsp)
 {
+	void* handle = *dsp;
+
 	if (!handle)
 		return false;
 

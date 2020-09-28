@@ -11,9 +11,9 @@ class GLContext
 		// Factory to create a new GL context
 		// based on the current OS/Windowing system
 		// returns nullptr if it fails
-		static std::unique_ptr<GLContext> Create(void* handle);
+		static std::unique_ptr<GLContext> Create(void** dsp);
 	protected:
-		virtual bool Init(void* handle) = 0;
+		virtual bool Init(void**) = 0;
 
 		uint32 m_width;
 		uint32 m_height;
