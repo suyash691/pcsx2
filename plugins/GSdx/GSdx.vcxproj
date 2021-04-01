@@ -123,7 +123,6 @@
     <ClCompile Include="GSLocalMemory.cpp" />
     <ClCompile Include="GSLzma.cpp" />
     <ClCompile Include="GSPerfMon.cpp" />
-    <ClCompile Include="Renderers\Common\GSOsdManager.cpp" />
     <ClCompile Include="GSPng.cpp" />
     <ClCompile Include="Renderers\SW\GSRasterizer.cpp" />
     <ClCompile Include="Renderers\Common\GSRenderer.cpp" />
@@ -195,7 +194,6 @@
     <ClInclude Include="GSLocalMemory.h" />
     <ClInclude Include="GSLzma.h" />
     <ClInclude Include="GSPerfMon.h" />
-    <ClInclude Include="Renderers\Common\GSOsdManager.h" />
     <ClInclude Include="GSPng.h" />
     <ClInclude Include="Renderers\SW\GSRasterizer.h" />
     <ClInclude Include="Renderers\Common\GSRenderer.h" />
@@ -271,9 +269,6 @@
     <Image Include="res\logo11.bmp" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\3rdparty\freetype\builds\windows\freetype.vcxproj">
-      <Project>{78b079bd-9fc7-4b9e-b4a6-96da0f00248b}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\..\3rdparty\libpng\projects\vstudio\libpng\libpng.vcxproj">
       <Project>{d6973076-9317-4ef2-a0b8-b7a18ac0713e}</Project>
     </ProjectReference>

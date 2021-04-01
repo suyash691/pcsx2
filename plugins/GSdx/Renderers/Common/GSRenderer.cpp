@@ -432,13 +432,6 @@ void GSRenderer::VSync(int field)
 	}
 
 	// present
-
-	// This will scale the OSD to the window's size.
-	// Will maintiain the font size no matter what size the window is.
-	GSVector4i window_size = m_wnd->GetClientRect();
-	m_dev->m_osd.m_real_size.x = window_size.v[2];
-	m_dev->m_osd.m_real_size.y = window_size.v[3];
-
 	m_dev->Present(m_wnd->GetClientRect().fit(m_aspectratio), m_shader);
 
 	// snapshot

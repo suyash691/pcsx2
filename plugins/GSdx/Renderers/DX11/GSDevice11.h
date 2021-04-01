@@ -491,8 +491,6 @@ private:
 	GSConstantBuffer m_gs_cb_cache;
 	PSConstantBuffer m_ps_cb_cache;
 
-	std::unique_ptr<GSTexture> m_font;
-
 protected:
 	struct {D3D_FEATURE_LEVEL level; std::string model, vs, gs, ps, cs;} m_shader;
 public:

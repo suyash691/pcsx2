@@ -503,8 +503,6 @@ private:
 	PSConstantBuffer m_ps_cb_cache;
 	MiscConstantBuffer m_misc_cb_cache;
 
-	std::unique_ptr<GSTexture> m_font;
-
 	GSTexture* CreateSurface(int type, int w, int h, int format);
 	GSTexture* FetchSurface(int type, int w, int h, int format);
 

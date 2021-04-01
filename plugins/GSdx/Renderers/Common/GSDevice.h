@@ -26,7 +26,6 @@
 #include "GSTexture.h"
 #include "GSVertex.h"
 #include "GSAlignedClass.h"
-#include "GSOsdManager.h"
 
 enum ShaderConvert
 {
@@ -173,8 +172,6 @@ protected:
 	virtual uint16 ConvertBlendEnum(uint16 generic) = 0; // Convert blend factors/ops from the generic enum to DX11/OGl specific.
 
 public:
-	GSOsdManager m_osd;
-
 	GSDevice();
 	virtual ~GSDevice();
 
@@ -231,7 +228,6 @@ public:
 	void FXAA();
 	void ShadeBoost();
 	void ExternalFX();
-	virtual void RenderOsd(GSTexture* dt) {};
 
 	bool ResizeTexture(GSTexture** t, int type, int w, int h);
 	bool ResizeTexture(GSTexture** t, int w, int h);

@@ -347,11 +347,6 @@ void GSdxApp::Init()
 	m_default_configuration["ModeHeight"]                                 = "480";
 	m_default_configuration["ModeWidth"]                                  = "640";
 	m_default_configuration["NTSC_Saturation"]                            = "1";
-#ifdef _WIN32
-	m_default_configuration["osd_fontname"]                               = "C:\\Windows\\Fonts\\my_favorite_font_e_g_tahoma.ttf";
-#else
-	m_default_configuration["osd_fontname"]                               = "/usr/share/fonts/truetype/my_favorite_font_e_g_DejaVu Sans.ttf";
-#endif
 	m_default_configuration["osd_color_r"]                                = "0";
 	m_default_configuration["osd_color_g"]                                = "160";
 	m_default_configuration["osd_color_b"]                                = "255";
